@@ -6,6 +6,8 @@ import android.graphics.Canvas;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.util.AttributeSet;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -14,7 +16,8 @@ import com.marshong.martin16_250_hw3.R;
 /**
  * Created by martin on 5/22/2015.
  */
-public class CustomShapeView2 extends View {
+public class CustomShapeView2 extends View implements GestureDetector.OnDoubleTapListener, GestureDetector.OnGestureListener {
+    private final static String TAG = CustomShapeView2.class.getSimpleName();
 
     private int mCircleColor;
     private Paint mCirclePaint;
@@ -23,8 +26,9 @@ public class CustomShapeView2 extends View {
 
     private Point mHomePoint;    //home point will be designated in the upper left corner
 
-    private int mOldX;
-    private int mOldY;
+    //use the gesture detector to capture double tap events.
+    //GOTCHA: implement the OnGestureListener
+    private GestureDetector mGestureDetector;
 
     //GOTCHA: This constructor used when creating the view in code
     public CustomShapeView2(Context context) {
@@ -48,7 +52,8 @@ public class CustomShapeView2 extends View {
     private void init(AttributeSet attrs, int defStyle) {
         //this method will initialize the views and the attributes
 
-
+        //instantiate the GestureDetector.
+        mGestureDetector = new GestureDetector(getContext(), this);
 
         //initialize circle attributes
         mCirclePaint = new Paint();
@@ -89,29 +94,19 @@ public class CustomShapeView2 extends View {
                 mCirclePaint);          // Circle Paint
     }
 
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         super.onTouchEvent(event);
 
+        //call the gesture detector touch event first
+        mGestureDetector.onTouchEvent(event);
+
         int x = (int) event.getX();
         int y = (int) event.getY();
 
-
-        //we are detecting a double tap, to be a consecutive touch event at the same location.
-        //in order to take care of that, we need to remember where we last touch on the screen.
-        //currently we do not have a tolerance of how much the previous tap can be
-        //off. the previous x and y have to match exactly.
-        // also we do not have a time constraint on how fast the taps have to be.
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                //if the user clicked twice on the same spot anywhere on the screen
-                //then return the circle back to home point.
-                if (x == mOldX && y == mOldY) {
-                    mCenter = mHomePoint;
-                } else {
-                    //not a double tap, move the circle.
-                    mCenter = new Point(x, y);
-                }
                 break;
             case MotionEvent.ACTION_MOVE:
                 mCenter = new Point(x, y);
@@ -122,12 +117,59 @@ public class CustomShapeView2 extends View {
                 return false;
         }
 
-        invalidate();
-
-        //save off old x and y locations
-        mOldX = x;
-        mOldY = y;
+        invalidate();   //force redraw by invalidating the canvas
         return true;
+    }
+
+    @Override
+    public boolean onSingleTapConfirmed(MotionEvent motionEvent) {
+        return false;
+    }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent motionEvent) {
+        Log.d(TAG, "onDoubleTap...");
+        //Toast.makeText(getContext(), "onDoubleTap...", Toast.LENGTH_SHORT).show();
+        //mCenter = mHomePoint;
+        return true;
+    }
+
+    @Override
+    public boolean onDoubleTapEvent(MotionEvent motionEvent) {
+        Log.d(TAG, "onDoubleTapEvent...");
+        //Toast.makeText(getContext(), "onDoubleTapEvent...", Toast.LENGTH_SHORT).show();
+        mCenter = mHomePoint;
+        return true;
+    }
+
+    @Override
+    public boolean onDown(MotionEvent motionEvent) {
+        return false;
+    }
+
+    @Override
+    public void onShowPress(MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public boolean onSingleTapUp(MotionEvent motionEvent) {
+        return false;
+    }
+
+    @Override
+    public boolean onScroll(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+        return false;
+    }
+
+    @Override
+    public void onLongPress(MotionEvent motionEvent) {
+
+    }
+
+    @Override
+    public boolean onFling(MotionEvent motionEvent, MotionEvent motionEvent1, float v, float v1) {
+        return false;
     }
 }
 
